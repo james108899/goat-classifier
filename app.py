@@ -32,6 +32,6 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Export the app for production
-# This allows Vercel or other WSGI servers to find the app
-app = app
+# Start the server locally
+if __name__ == "__main__":
+    app.run(debug=True)
