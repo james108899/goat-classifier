@@ -32,6 +32,3 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Start the server locally
-if __name__ == "__main__":
-    app.run(debug=True)
