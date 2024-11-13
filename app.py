@@ -3,8 +3,8 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from io import BytesIO
-import os
 from PIL import Image
+import os
 
 app = Flask(__name__)
 model = load_model('goat_sex_model_tf_saved')
@@ -13,14 +13,23 @@ model = load_model('goat_sex_model_tf_saved')
 def predict():
     try:
         file = request.files['image']
-        
-        # Read the image file and load it as a PIL image
+        # Open the image using PIL (Pillow)
         img = Image.open(BytesIO(file.read()))
-        img = img.resize((150, 150))  # Resize the image to the target size
         
-        # Convert the image to array and preprocess
+        # Convert RGBA to RGB if necessary
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+        
+        # Resize image to match model input size
+        img = img.resize((150, 150))
+        
+        # Convert image to array
         img_array = image.img_to_array(img)
+        
+        # Expand dimensions to match model input
         img_array = np.expand_dims(img_array, axis=0)
+        
+        # Normalize the image
         img_array /= 255.0
 
         # Make prediction
@@ -34,3 +43,6 @@ def predict():
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
