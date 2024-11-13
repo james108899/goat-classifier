@@ -20,5 +20,5 @@ COPY goat_sex_model_tf_saved /app/goat_sex_model_tf_saved
 EXPOSE 8000
 
 # Start the Flask application using Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--timeout", "120", "app:app"]
 
