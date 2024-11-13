@@ -4,16 +4,13 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from io import BytesIO
 from PIL import Image
-import os
 
 app = Flask(__name__)
-
-# Load the model
 model = load_model('goat_sex_model_tf_saved')
 
-# Root route (Optional)
-@app.route('/', methods=['GET'])
-def home():
+# Welcome message route
+@app.route('/')
+def welcome():
     return "Welcome to the Goat Classifier API!"
 
 # Prediction route
@@ -21,23 +18,22 @@ def home():
 def predict():
     try:
         file = request.files['image']
-        
         # Open the image using PIL (Pillow)
         img = Image.open(BytesIO(file.read()))
-        
+
         # Convert RGBA to RGB if necessary
         if img.mode == 'RGBA':
             img = img.convert('RGB')
-        
+
         # Resize image to match model input size
         img = img.resize((150, 150))
-        
+
         # Convert image to array
         img_array = image.img_to_array(img)
-        
+
         # Expand dimensions to match model input
         img_array = np.expand_dims(img_array, axis=0)
-        
+
         # Normalize the image
         img_array /= 255.0
 
@@ -53,6 +49,5 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Running the app
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8080)
