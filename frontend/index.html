@@ -9,12 +9,11 @@
 <body>
     <div class="container">
         <h1>Goat Classifier</h1>
-        <p>Upload an image to identify the goat's sex</p>
-        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
-            <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
-            <p>Click or Drag an image here</p>
-        </div>
-        <button onclick="submitImage()">Submit</button>
+        <p>Upload an image to classify the goat as "Billy" or "Nanny".</p>
+        <form id="upload-form">
+            <input type="file" id="image-input" accept="image/*">
+            <button type="submit">Classify</button>
+        </form>
         <div id="result"></div>
     </div>
     <script src="script.js"></script>
