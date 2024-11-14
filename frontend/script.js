@@ -1,82 +1,89 @@
-const dropArea = document.getElementById("drop-area");
-const fileInput = document.getElementById("image-input");
-const previewImage = document.getElementById("preview-image");
-const resultDiv = document.getElementById("result");
+// script.js
 
-// Display the image preview
-function showImagePreview(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        previewImage.src = e.target.result;
-        previewImage.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-}
+document.addEventListener("DOMContentLoaded", function() {
+    const uploadForm = document.getElementById("upload-form");
+    const imageInput = document.getElementById("image-input");
+    const dropArea = document.getElementById("drop-area");
+    const imagePreview = document.getElementById("image-preview");
+    const resultDiv = document.getElementById("result");
 
-// Handle file selection
-fileInput.onchange = () => {
-    const file = fileInput.files[0];
-    if (file) {
-        showImagePreview(file);
-    }
-};
+    // Handle form submission
+    uploadForm.addEventListener("submit", function(event) {
+        event.preventDefault();
 
-// Handle drag-and-drop events
-dropArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropArea.classList.add("highlight");
-});
-
-dropArea.addEventListener("dragleave", () => {
-    dropArea.classList.remove("highlight");
-});
-
-dropArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropArea.classList.remove("highlight");
-    const file = e.dataTransfer.files[0];
-    fileInput.files = e.dataTransfer.files;
-    if (file) {
-        showImagePreview(file);
-    }
-});
-
-document.getElementById("upload-form").onsubmit = async function (event) {
-    event.preventDefault(); // Prevent form submission
-
-    const file = fileInput.files[0];
-    if (!file) {
-        alert("Please choose an image file to classify.");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-        const response = await fetch("/predict", {
-            method: "POST",
-            body: formData
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            const resultText = `Prediction: ${data.prediction}, Confidence: ${data.accuracy_percentage.toFixed(2)}%`;
-            resultDiv.innerText = resultText;
-
-            // Send prediction data and image to save on the server
-            await fetch("/save_image", {
-                method: "POST",
-                body: formData.append("prediction", data.prediction).append("confidence", data.accuracy_percentage.toFixed(2))
-            });
-        } else {
-            resultDiv.innerText = "Error: Failed to classify the image.";
+        if (imageInput.files.length === 0) {
+            resultDiv.textContent = "No image selected.";
+            return;
         }
-    } catch (error) {
-        console.error("Error:", error);
-        resultDiv.innerText = "Error: Could not classify the image.";
+
+        const file = imageInput.files[0];
+        classifyImage(file);
+    });
+
+    // Drag and drop functionality
+    dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("highlight");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("highlight");
+    });
+
+    dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropArea.classList.remove("highlight");
+
+        const file = event.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+            imageInput.files = event.dataTransfer.files;
+            previewImage(file);
+        }
+    });
+
+    // Click to open file selector
+    dropArea.addEventListener("click", () => {
+        imageInput.click();
+    });
+
+    // Preview the selected image
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+        if (file) {
+            previewImage(file);
+        }
+    });
+
+    function previewImage(file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            imagePreview.src = event.target.result;
+            imagePreview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
     }
 
-    // Reset file input after submission
-    fileInput.value = "";
-};
+    async function classifyImage(file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        resultDiv.textContent = "Classifying...";
+
+        try {
+            const response = await fetch("/predict", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                resultDiv.innerHTML = `<strong>Prediction:</strong> ${result.prediction}<br><strong>Confidence:</strong> ${result.accuracy_percentage.toFixed(2)}%`;
+            } else {
+                resultDiv.textContent = "Error: " + result.error;
+            }
+        } catch (error) {
+            resultDiv.textContent = "An error occurred while classifying the image.";
+            console.error("Error:", error);
+        }
+    }
+});
