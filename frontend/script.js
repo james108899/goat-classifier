@@ -1,15 +1,29 @@
+document.getElementById('drop-zone').addEventListener('click', () => {
+    document.getElementById('image-input').click();
+});
+
+document.getElementById('image-input').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const imgPreview = document.getElementById('image-preview');
+            imgPreview.src = e.target.result;
+            imgPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
 document.getElementById('upload-form').addEventListener('submit', async (event) => {
     event.preventDefault();
+    
     const fileInput = document.getElementById('image-input');
-    const resultDiv = document.getElementById('result');
-
-    if (!fileInput.files.length) {
-        resultDiv.textContent = 'No image selected.';
+    const file = fileInput.files[0];
+    if (!file) {
+        document.getElementById('result').textContent = 'Please select an image.';
         return;
     }
-
-    const file = fileInput.files[0];
-    displayImage(file);
 
     const formData = new FormData();
     formData.append('image', file);
@@ -19,23 +33,15 @@ document.getElementById('upload-form').addEventListener('submit', async (event) 
             method: 'POST',
             body: formData
         });
-        const data = await response.json();
-        if (data.error) {
-            resultDiv.textContent = `Error: ${data.error}`;
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('result').textContent = 
+                `Prediction: ${data.prediction}, Confidence: ${data.accuracy_percentage.toFixed(2)}%`;
         } else {
-            resultDiv.textContent = `Prediction: ${data.prediction}, Confidence: ${data.accuracy_percentage.toFixed(2)}%`;
+            document.getElementById('result').textContent = 'Error: Unable to classify the image.';
         }
     } catch (error) {
-        resultDiv.textContent = 'An error occurred.';
+        document.getElementById('result').textContent = 'Error: ' + error.message;
     }
 });
-
-function displayImage(file) {
-    const imgPreview = document.getElementById('image-preview');
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        imgPreview.src = event.target.result;
-        imgPreview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-}

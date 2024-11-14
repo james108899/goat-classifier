@@ -10,12 +10,17 @@
     <div class="container">
         <h1>Goat Classifier</h1>
         <p>Upload an image to classify the goat as "Billy" or "Nanny".</p>
-        <form id="upload-form">
-            <input type="file" id="image-input" accept="image/*">
+        <form id="upload-form" enctype="multipart/form-data">
+            <div id="drop-zone">
+                <p>Drag & drop an image or click to select</p>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
             <button type="submit">Classify</button>
         </form>
-        <img id="image-preview" alt="Selected Image Preview">
         <div id="result"></div>
+        <div id="image-preview-container">
+            <img id="image-preview" src="" alt="Image preview" />
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

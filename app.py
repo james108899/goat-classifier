@@ -1,19 +1,17 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from io import BytesIO
 from PIL import Image
 
-app = Flask(__name__, static_folder='frontend')
-
-# Load the model
+app = Flask(__name__, static_folder='frontend', template_folder='frontend')
 model = load_model('goat_sex_model_tf_saved')
 
-# Serve the HTML file for the UI
+# Serve the main page
 @app.route('/')
 def index():
-    return send_from_directory(app.static_folder, 'index.html')
+    return render_template('index.html')
 
 # Prediction route
 @app.route('/predict', methods=['POST'])
