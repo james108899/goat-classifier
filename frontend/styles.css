@@ -23,6 +23,10 @@ body {
     padding: 20px;
     border-radius: 10px;
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .drop-area label {
@@ -35,10 +39,12 @@ body {
 
 #uploaded-image {
     max-width: 100%;
-    height: auto;
+    max-height: 300px;
     margin-top: 10px;
     border-radius: 5px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    object-fit: contain; /* Ensures the image fits nicely without stretching */
+    display: none;
 }
 
 button {

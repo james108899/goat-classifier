@@ -29,6 +29,10 @@ document.getElementById('upload-form').addEventListener('submit', async function
             body: formData
         });
 
+        if (!response.ok) {
+            throw new Error("Failed to classify the image.");
+        }
+
         const data = await response.json();
         resultDiv.textContent = `Prediction: ${data.prediction}, Confidence: ${data.accuracy_percentage.toFixed(2)}%`;
     } catch (error) {
