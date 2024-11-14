@@ -1,89 +1,41 @@
-// script.js
+document.getElementById('upload-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const fileInput = document.getElementById('image-input');
+    const resultDiv = document.getElementById('result');
 
-document.addEventListener("DOMContentLoaded", function() {
-    const uploadForm = document.getElementById("upload-form");
-    const imageInput = document.getElementById("image-input");
-    const dropArea = document.getElementById("drop-area");
-    const imagePreview = document.getElementById("image-preview");
-    const resultDiv = document.getElementById("result");
-
-    // Handle form submission
-    uploadForm.addEventListener("submit", function(event) {
-        event.preventDefault();
-
-        if (imageInput.files.length === 0) {
-            resultDiv.textContent = "No image selected.";
-            return;
-        }
-
-        const file = imageInput.files[0];
-        classifyImage(file);
-    });
-
-    // Drag and drop functionality
-    dropArea.addEventListener("dragover", (event) => {
-        event.preventDefault();
-        dropArea.classList.add("highlight");
-    });
-
-    dropArea.addEventListener("dragleave", () => {
-        dropArea.classList.remove("highlight");
-    });
-
-    dropArea.addEventListener("drop", (event) => {
-        event.preventDefault();
-        dropArea.classList.remove("highlight");
-
-        const file = event.dataTransfer.files[0];
-        if (file && file.type.startsWith("image/")) {
-            imageInput.files = event.dataTransfer.files;
-            previewImage(file);
-        }
-    });
-
-    // Click to open file selector
-    dropArea.addEventListener("click", () => {
-        imageInput.click();
-    });
-
-    // Preview the selected image
-    imageInput.addEventListener("change", () => {
-        const file = imageInput.files[0];
-        if (file) {
-            previewImage(file);
-        }
-    });
-
-    function previewImage(file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            imagePreview.src = event.target.result;
-            imagePreview.style.display = "block";
-        };
-        reader.readAsDataURL(file);
+    if (!fileInput.files.length) {
+        resultDiv.textContent = 'No image selected.';
+        return;
     }
 
-    async function classifyImage(file) {
-        const formData = new FormData();
-        formData.append("image", file);
+    const file = fileInput.files[0];
+    displayImage(file);
 
-        resultDiv.textContent = "Classifying...";
+    const formData = new FormData();
+    formData.append('image', file);
 
-        try {
-            const response = await fetch("/predict", {
-                method: "POST",
-                body: formData,
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                resultDiv.innerHTML = `<strong>Prediction:</strong> ${result.prediction}<br><strong>Confidence:</strong> ${result.accuracy_percentage.toFixed(2)}%`;
-            } else {
-                resultDiv.textContent = "Error: " + result.error;
-            }
-        } catch (error) {
-            resultDiv.textContent = "An error occurred while classifying the image.";
-            console.error("Error:", error);
+    try {
+        const response = await fetch('/predict', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.error) {
+            resultDiv.textContent = `Error: ${data.error}`;
+        } else {
+            resultDiv.textContent = `Prediction: ${data.prediction}, Confidence: ${data.accuracy_percentage.toFixed(2)}%`;
         }
+    } catch (error) {
+        resultDiv.textContent = 'An error occurred.';
     }
 });
+
+function displayImage(file) {
+    const imgPreview = document.getElementById('image-preview');
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        imgPreview.src = event.target.result;
+        imgPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
