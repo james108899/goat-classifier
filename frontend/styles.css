@@ -61,10 +61,15 @@ button:hover {
 
 #image-preview-container {
     margin-top: 15px;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #image-preview {
     max-width: 100%;
+    max-height: 250px;
     border-radius: 8px;
-    display: none;
+    border: 2px solid #ccc;
 }
