@@ -1,41 +1,36 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify
+import os
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from io import BytesIO
 from PIL import Image
-import os
+import datetime
 
-app = Flask(__name__, static_folder="frontend", template_folder="frontend")
+app = Flask(__name__)
 model = load_model('goat_sex_model_tf_saved')
 
-# Route to serve the main HTML file
+# Welcome route
 @app.route('/')
-def index():
-    return render_template("index.html")
+def welcome():
+    return "Welcome to the Goat Classifier API!"
 
-# Route for prediction
+# Prediction route
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         file = request.files['image']
         img = Image.open(BytesIO(file.read()))
-        
+
         # Convert RGBA to RGB if necessary
         if img.mode == 'RGBA':
             img = img.convert('RGB')
-        
-        # Resize image to match model input size
+
+        # Resize image to model's input size
         img = img.resize((150, 150))
-        
-        # Convert image to array
         img_array = image.img_to_array(img)
-        
-        # Expand dimensions to match model input
         img_array = np.expand_dims(img_array, axis=0)
-        
-        # Normalize the image
-        img_array /= 255.0
+        img_array /= 255.0  # Normalize image
 
         # Make prediction
         prediction = model.predict(img_array)
@@ -49,10 +44,30 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Serve static files (CSS, JS) from the frontend directory
-@app.route('/<path:filename>')
-def serve_static(filename):
-    return send_from_directory(app.static_folder, filename)
+# Route to save images with prediction and confidence
+@app.route('/save_image', methods=['POST'])
+def save_image():
+    try:
+        file = request.files['image']
+        prediction = request.form['prediction']
+        confidence = request.form['confidence']
+
+        # Generate filename based on prediction, confidence, and timestamp
+        timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        filename = f"{prediction}_{confidence}_{timestamp}.jpg"
+        save_path = os.path.join("saved_images", filename)
+
+        # Create directory if it doesn't exist
+        if not os.path.exists("saved_images"):
+            os.makedirs("saved_images")
+
+        # Save the image
+        img = Image.open(file.stream)
+        img.save(save_path)
+
+        return jsonify({"message": "Image saved successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8080)

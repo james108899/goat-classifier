@@ -11,9 +11,15 @@
         <h1>Goat Classifier</h1>
         <p>Upload an image to classify the goat as "Billy" or "Nanny".</p>
         <form id="upload-form">
-            <input type="file" id="image-input" accept="image/*">
+            <div id="drop-area">
+                <p>Drag & drop an image here, or <br> click to select a file</p>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
             <button type="submit">Classify</button>
         </form>
+        <div id="preview-container">
+            <img id="preview-image" src="" alt="Image Preview" style="display:none;">
+        </div>
         <div id="result"></div>
     </div>
     <script src="script.js"></script>
