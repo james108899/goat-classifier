@@ -1,44 +1,89 @@
-document.getElementById('upload-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const fileInput = document.getElementById('image-input');
-    const file = fileInput.files[0];
-    if (!file) {
-        alert("Please select an image.");
-        return;
-    }
+// script.js
 
-    const formData = new FormData();
-    formData.append('image', file);
+document.addEventListener("DOMContentLoaded", function() {
+    const uploadForm = document.getElementById("upload-form");
+    const imageInput = document.getElementById("image-input");
+    const dropArea = document.getElementById("drop-area");
+    const imagePreview = document.getElementById("image-preview");
+    const resultDiv = document.getElementById("result");
 
-    try {
-        const response = await fetch('/predict', {
-            method: 'POST',
-            body: formData
-        });
+    // Handle form submission
+    uploadForm.addEventListener("submit", function(event) {
+        event.preventDefault();
 
-        const resultDiv = document.getElementById('result');
-        const resultData = await response.json();
-
-        if (response.ok) {
-            resultDiv.innerText = `Prediction: ${resultData.prediction}\nConfidence: ${resultData.accuracy_percentage.toFixed(2)}%`;
-        } else {
-            resultDiv.innerText = "Error: Could not classify the image.";
+        if (imageInput.files.length === 0) {
+            resultDiv.textContent = "No image selected.";
+            return;
         }
-    } catch (error) {
-        console.error("Error:", error);
-        document.getElementById('result').innerText = "An error occurred during classification.";
-    }
-});
 
-document.getElementById('image-input').addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
+        const file = imageInput.files[0];
+        classifyImage(file);
+    });
+
+    // Drag and drop functionality
+    dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("highlight");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("highlight");
+    });
+
+    dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropArea.classList.remove("highlight");
+
+        const file = event.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+            imageInput.files = event.dataTransfer.files;
+            previewImage(file);
+        }
+    });
+
+    // Click to open file selector
+    dropArea.addEventListener("click", () => {
+        imageInput.click();
+    });
+
+    // Preview the selected image
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+        if (file) {
+            previewImage(file);
+        }
+    });
+
+    function previewImage(file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const uploadedImage = document.getElementById('uploaded-image');
-            uploadedImage.src = e.target.result;
-            uploadedImage.style.display = "block";
+        reader.onload = (event) => {
+            imagePreview.src = event.target.result;
+            imagePreview.style.display = "block";
         };
         reader.readAsDataURL(file);
+    }
+
+    async function classifyImage(file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        resultDiv.textContent = "Classifying...";
+
+        try {
+            const response = await fetch("/predict", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                resultDiv.innerHTML = `<strong>Prediction:</strong> ${result.prediction}<br><strong>Confidence:</strong> ${result.accuracy_percentage.toFixed(2)}%`;
+            } else {
+                resultDiv.textContent = "Error: " + result.error;
+            }
+        } catch (error) {
+            resultDiv.textContent = "An error occurred while classifying the image.";
+            console.error("Error:", error);
+        }
     }
 });
