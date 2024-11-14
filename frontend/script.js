@@ -1,33 +1,35 @@
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    document.getElementById('imageInput').file = file;
-}
+document.getElementById("upload-form").onsubmit = async function(event) {
+    event.preventDefault(); // Prevent form submission
 
-function submitImage() {
-    const file = document.getElementById('imageInput').file;
+    const fileInput = document.getElementById("image-input");
+    const file = fileInput.files[0];
+
     if (!file) {
-        alert("Please upload an image first!");
+        alert("Please choose an image file to classify.");
         return;
     }
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
 
-    fetch(' https://goat-classifier-185569743902.us-west2.run.app/predict', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        const resultElement = document.getElementById('result');
-        if (data.error) {
-            resultElement.textContent = `Error: ${data.error}`;
+    try {
+        const response = await fetch("/predict", {
+            method: "POST",
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const resultText = `Prediction: ${data.prediction}, Confidence: ${data.accuracy_percentage.toFixed(2)}%`;
+            document.getElementById("result").innerText = resultText;
         } else {
-            resultElement.textContent = `Prediction: ${data.prediction} (Accuracy: ${data.accuracy_percentage.toFixed(2)}%)`;
+            document.getElementById("result").innerText = "Error: Failed to classify the image.";
         }
-    })
-    .catch(error => {
-        document.getElementById('result').textContent = "An error occurred. Please try again.";
-        console.error('Error:', error);
-    });
-}
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("result").innerText = "Error: Could not classify the image.";
+    }
+
+    // Reset file input after submission
+    fileInput.value = "";
+};
