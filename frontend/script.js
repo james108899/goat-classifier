@@ -1,5 +1,3 @@
-// script.js
-
 document.addEventListener("DOMContentLoaded", function() {
     const uploadForm = document.getElementById("upload-form");
     const imageInput = document.getElementById("image-input");
