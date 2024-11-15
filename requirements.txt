@@ -6,3 +6,4 @@ gunicorn==20.1.0
 Werkzeug==2.1.2
 Pillow==8.4.0
 scipy
+google-cloud-storage
